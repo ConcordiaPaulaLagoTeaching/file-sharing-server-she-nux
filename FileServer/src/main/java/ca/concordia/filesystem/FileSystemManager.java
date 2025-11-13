@@ -11,7 +11,7 @@ public class FileSystemManager {
 
     private final int MAXFILES = 5;
     private final int MAXBLOCKS = 10;
-    private final static FileSystemManager instance;
+    private static FileSystemManager instance = null;
     private final RandomAccessFile disk;
     private final ReentrantLock globalLock = new ReentrantLock();
 
@@ -24,7 +24,9 @@ public class FileSystemManager {
         // Initialize the file system manager with a file
         if(instance == null) {
             //TODO Initialize the file system
+        	
         	//PRATHIKSHA
+        	//FileSystemManager()
         	try {
         		this.disk = new RandomAccessFile(filename, "rw");
         		
@@ -52,6 +54,7 @@ public class FileSystemManager {
     public void createFile(String fileName) throws Exception {
         // TODO
     	//PRATHIKSHA
+    	//createFile()
     	globalLock.lock();
         
     	try {
@@ -86,6 +89,7 @@ public class FileSystemManager {
     }
     
     //PRATHIKSHA
+    //deleteFile()
     public void deleteFile(String fileName) throws Exception {
         
     	globalLock.lock();
@@ -109,11 +113,36 @@ public class FileSystemManager {
     		}
     	
     }
+    //PRATHIKSHA
+    //readFile()
+    public byte[] readFile(String fileName) throws Exception {
+
+        globalLock.lock();
+        try {
+        	
+            for (FEntry entry : inodeTable) {
+                if (entry != null && entry.getFilename().equals(fileName)) {
+
+                    System.out.println("SUCCESS: File '" + fileName + "' read.");
+                    return new byte[entry.getFilesize()]; 
+                }
+            }
+
+            System.out.println("ERROR: File '" + fileName + "' not found.");
+            return null;
+
+        } finally {
+            globalLock.unlock();
+        }
+    }
+    
  // PRATHIKSHA
+    //listFile()
     public String listFiles() {
 
         globalLock.lock();
         try {
+        	
             StringBuilder result = new StringBuilder();
             boolean found = false;
 
@@ -130,6 +159,7 @@ public class FileSystemManager {
 
             return result.toString();
         }
+        
         finally {
             globalLock.unlock();
         }
