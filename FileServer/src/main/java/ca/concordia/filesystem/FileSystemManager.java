@@ -53,7 +53,8 @@ public class FileSystemManager {
         // TODO
     	//PRATHIKSHA
     	globalLock.lock();
-        try {
+        
+    	try {
             if (fileName.length() > 11) {
                 System.out.println("ERROR: Filename too long.");
                 return;
@@ -78,10 +79,12 @@ public class FileSystemManager {
 
             System.out.println("ERROR: Maximum file limit reached (" + MAXFILES + ")");
 
-        } finally {
+        } 
+    	finally {
             globalLock.unlock();
         }
     }
+    
     //PRATHIKSHA
     public void deleteFile(String fileName) throws Exception {
         
@@ -94,7 +97,7 @@ public class FileSystemManager {
     			if(entry != null && entry.getFilename().equals(fileName)) {
     				inodeTable[i] = null;
     				
-    				System.out.println("SUCCESS: File '" + fileName + "'deleted");
+    				System.out.println("SUCCESS: File '" + fileName + "' deleted");
     				return;
     			}
     		}
@@ -104,7 +107,34 @@ public class FileSystemManager {
     		finally {
     			globalLock.unlock();
     		}
-    	}
     	
     }
+ // PRATHIKSHA
+    public String listFiles() {
+
+        globalLock.lock();
+        try {
+            StringBuilder result = new StringBuilder();
+            boolean found = false;
+
+            for (FEntry entry : inodeTable) {
+                if (entry != null) {
+                    result.append(entry.getFilename()).append("\n");
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                return "No files found.";
+            }
+
+            return result.toString();
+        }
+        finally {
+            globalLock.unlock();
+        }
+    }
+
+    
     // TODO: Add readFile, writeFile and other required methods,
+}
