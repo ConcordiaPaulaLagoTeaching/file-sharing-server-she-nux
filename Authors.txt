@@ -1,0 +1,16 @@
+Group Name:   She-Nux
+
+
+Student 1
+
+Name: Djessica Ndjiongue Djapoum
+id: 40263245
+github username: DessiTech
+
+
+Student 2
+
+Name: Prathiksha Kandiah 
+id: 40190782
+github username: thikshaa 
+
