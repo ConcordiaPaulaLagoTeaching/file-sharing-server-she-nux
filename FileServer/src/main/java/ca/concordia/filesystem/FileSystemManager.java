@@ -166,11 +166,11 @@ public class FileSystemManager {
     }
 
     public static FileSystemManager getInstance(String filename, int totalsize){
-        if (instance == null){
-            instance = new FileSystemManager(null, totalsize);
-        }
-        return instance;
+    if (instance == null){
+        instance = new FileSystemManager(filename, totalsize);
     }
+    return instance;
+}
     
     // TODO: Add readFile, writeFile and other required methods,
 }
