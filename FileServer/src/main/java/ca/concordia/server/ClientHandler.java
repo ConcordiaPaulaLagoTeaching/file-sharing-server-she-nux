@@ -91,7 +91,10 @@ public class ClientHandler implements Runnable {
                         case "LIST":
                             rwLock.readLock().lock(); // safe to read all files
                             try {
-                                writer.println(fsManager.listFiles());
+                               String[] files = fsManager.listFiles();
+                                if (files.length == 0) writer.println("No files");
+                                else writer.println(String.join(",", files));
+
                             } finally {
                                 rwLock.readLock().unlock();
                             }
