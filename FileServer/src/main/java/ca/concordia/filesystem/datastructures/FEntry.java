@@ -1,21 +1,19 @@
 package ca.concordia.filesystem.datastructures;
 
-import java.util.LinkedList;
-
 public class FEntry {
 
     private String filename;
     private short filesize;
-    private short firstBlock; // Pointers to data blocks
+    private short firstBlock; // Pointer to the first FNode
 
-    public FEntry(String filename, short filesize, short firstblock) throws IllegalArgumentException{
-        //Check filename is max 11 bytes long
+    public FEntry(String filename, short filesize, short firstBlock) throws IllegalArgumentException {
+        // Check filename is max 11 bytes long
         if (filename.length() > 11) {
             throw new IllegalArgumentException("Filename cannot be longer than 11 characters.");
         }
         this.filename = filename;
         this.filesize = filesize;
-        this.firstBlock = firstblock;
+        this.firstBlock = firstBlock;
     }
 
     // Getters and Setters
@@ -45,8 +43,7 @@ public class FEntry {
         return firstBlock;
     }
 
-    public void setFirstBlock(short block){
-        this.firstBlock = block;
+    public void setFirstBlock(short firstBlock) {
+        this.firstBlock = firstBlock;
     }
-    
 }
