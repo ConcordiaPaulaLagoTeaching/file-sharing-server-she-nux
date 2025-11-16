@@ -47,8 +47,12 @@ public class FileServer {
 
                         switch (command) {
                             case "CREATE":
-                                fsManager.createFile(parts[1]);
-                                writer.println("SUCCESS: File '" + parts[1] + "' created.");
+                                try {
+                                    fsManager.createFile(parts[1]);
+                                    writer.println("SUCCESS: File '" + parts[1] + "' created.");
+                                } catch (Exception e) {
+                                    writer.println("ERROR: Could not create file '" + parts[1] + "'. " + e.getMessage());
+                                }
                                 writer.flush();
                                 break;
 
@@ -56,31 +60,43 @@ public class FileServer {
                             //TODO: Implement other commands READ, WRITE, DELETE, LIST
 
                             case "DELETE":
-                                fsManager.deleteFile(parts[1]);
-                                writer.println("SUCCESS: File '" + parts[1] + "' deleted.");
+                                try {
+                                        fsManager.deleteFile(parts[1]);
+                                        writer.println("SUCCESS: File '" + parts[1] + "' deleted.");
+                                    } catch (Exception e) {
+                                        writer.println("ERROR: Could not delete file '" + parts[1] + "'. " + e.getMessage());
+                                    }
+                                    writer.flush();
                                 break;
 
                             case "WRITE":
-                                // Join the rest of the parts as content
-                                StringBuilder sb = new StringBuilder();
-                                    for (int i = 2; i < parts.length; i++) {
-                                        sb.append(parts[i]);
-                                        if (i < parts.length - 1) sb.append(" ");
-                                    }
-                                byte[] data = sb.toString().getBytes();
-                                fsManager.writeFile(parts[1], data);
-                                writer.println("SUCCESS: Written to file '" + parts[1] + "'");
-                                writer.flush();
+                                 try {
+                                        StringBuilder sb = new StringBuilder();
+                                        for (int i = 2; i < parts.length; i++) {
+                                            sb.append(parts[i]);
+                                            if (i < parts.length - 1) sb.append(" ");
+                                        }
+                                        byte[] data = sb.toString().getBytes();
+                                        fsManager.writeFile(parts[1], data);
+                                        writer.println("SUCCESS: Written to file '" + parts[1] + "'");
+                                    } catch (Exception e) {
+                                             writer.println("ERROR: Could not write to file '" + parts[1] + "'. " + e.getMessage());
+                                          }
+                                    writer.flush();
                                 break;
 
                             case "READ":
-                                byte[] content = fsManager.readFile(parts[1]);
-                                if (content != null) {
-                                    String fileContent = new String(content);
-                                    writer.println("Content of '" + parts[1] + "': " + fileContent);
-                                } else {
-                                    writer.println("ERROR: File '" + parts[1] + "' not found.");
-                                }
+                                try {
+                                    byte[] content = fsManager.readFile(parts[1]);
+                                    if (content != null) {
+                                        String fileContent = new String(content);
+                                        writer.println("SUCCESS: Content of '" + parts[1] + "': " + fileContent);
+                                    } else {
+                                        writer.println("ERROR: File '" + parts[1] + "' not found.");
+                                    }
+                                } catch (Exception e) {
+                                     writer.println("ERROR: Could not read file '" + parts[1] + "'. " + e.getMessage());
+                                    }
                                 writer.flush();
                                 break;
 
@@ -89,12 +105,21 @@ public class FileServer {
 
                             case "QUIT":
                                 writer.println("SUCCESS: Disconnecting.");
+                                writer.flush();
                                 return;
                             case "LIST":
-                            	ListCommandHandler.handle(writer);
-                            	break;
+                                    //Djess
+                             try {
+                                      ListCommandHandler.handle(writer, fsManager);
+                                 } catch (Exception e) {
+                                writer.println("ERROR: Could not list files. " + e.getMessage());
+                                writer.flush();
+                            }
+                            break;
+                                    // End
                             default:
-                                writer.println("ERROR: Unknown command.");
+                                 writer.println("ERROR: Unknown command.");
+                                 writer.flush();
                                 break;
                         }
                     }

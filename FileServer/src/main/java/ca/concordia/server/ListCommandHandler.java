@@ -6,17 +6,12 @@ import ca.concordia.filesystem.FileSystemManager;
 
 public class ListCommandHandler {
     //Djessica
-    // modifying so that it actually calls FileSystemManager.listFiles()
-
-    // Get the singleton instance of FileSystemManager
-    private static FileSystemManager fsManager = FileSystemManager.getInstance(null, 0);
-
-    public static void handle(PrintWriter writer) {
-        
-        // Get the list of files
+   /**
+     * Send the list of files to the client using the server's FileSystemManager instance.
+     * This avoids getting a separate instance with different init args.
+     */
+    public static void handle(PrintWriter writer, FileSystemManager fsManager) {
         String files = fsManager.listFiles();
-
-        // Send it to the client
         writer.println(files);
         writer.flush();
     }
