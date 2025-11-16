@@ -33,11 +33,18 @@ public class FileSystemManager {
                 this.inodeTable = new FEntry[MAXFILES];
                 this.freeBlockList = new boolean[MAXBLOCKS];
 
+                // Initialize all blocks as free
                 for (int i = 0; i < MAXBLOCKS; i++) {
                     freeBlockList[i] = true;
                 }
 
+                // Reserve block 0 for metadata if needed
                 freeBlockList[0] = false;
+
+                 // Load existing metadata if file has data
+                if (disk.length() > 0) {
+                    loadMetadata();
+                }
 
             } catch (Exception e) {
                 throw new RuntimeException("Failed to initialize filesystem: " + e.getMessage());
@@ -48,8 +55,65 @@ public class FileSystemManager {
         } else {
             throw new IllegalStateException("FileSystemManager is already initialized.");
         }
-
     }
+    
+
+         //Djessica
+    private void loadMetadata() {
+    try {
+        disk.seek(0); // block 0 reserved for metadata
+
+        for (int i = 0; i < MAXFILES; i++) {
+            // Read filename length first
+            int nameLength = disk.readByte();
+            if (nameLength > 0) {
+                byte[] nameBytes = new byte[nameLength];
+                disk.readFully(nameBytes);
+                String filename = new String(nameBytes);
+
+                short filesize = disk.readShort();
+                short firstBlock = disk.readShort();
+
+                inodeTable[i] = new FEntry(filename, filesize, firstBlock);
+
+                if (firstBlock >= 0) {
+                    freeBlockList[firstBlock] = false;
+                }
+            } else {
+                inodeTable[i] = null;
+            }
+        }
+    } catch (IOException e) {
+        throw new RuntimeException("Failed to load metadata: " + e.getMessage());
+    }
+
+}
+    
+
+    
+    // Djessica - function to save metadata back to the disk
+    private void saveMetadata() {
+    globalLock.lock();
+    try {
+        disk.seek(0);
+        for (int i = 0; i < MAXFILES; i++) {
+            FEntry entry = inodeTable[i];
+            if (entry != null) {
+                byte[] nameBytes = entry.getFilename().getBytes();
+                disk.writeByte(nameBytes.length);
+                disk.write(nameBytes);
+                disk.writeShort(entry.getFilesize());
+                disk.writeShort(entry.getFirstBlock());
+            } else {
+                disk.writeByte(0); // indicates empty
+            }
+        }
+    } catch (IOException e) {
+        throw new RuntimeException("Failed to save metadata: " + e.getMessage());
+    } finally {
+        globalLock.unlock();
+    }
+}
 
     public void createFile(String fileName) throws Exception {
         // TODO
@@ -75,6 +139,10 @@ public class FileSystemManager {
 
                     inodeTable[i] = new FEntry(fileName, (short) 0, (short) -1);
 
+                    //Djessica
+                    saveMetadata();
+                    //End
+
                     System.out.println("SUCCESS: File '" + fileName + "' created.");
                     return;
                 }
@@ -90,29 +158,38 @@ public class FileSystemManager {
     
     //PRATHIKSHA
     //deleteFile()
-    public void deleteFile(String fileName) throws Exception {
-        
-    	globalLock.lock();
-    	
-    	try {
-    		for (int i = 0; i <inodeTable.length; i++) {
-    			FEntry entry = inodeTable[i];
-    			
-    			if(entry != null && entry.getFilename().equals(fileName)) {
-    				inodeTable[i] = null;
-    				
-    				System.out.println("SUCCESS: File '" + fileName + "' deleted");
-    				return;
-    			}
-    		}
-    		System.out.println("ERROR: File '" + fileName + "' not found");
-    		
-    	}
-    		finally {
-    			globalLock.unlock();
-    		}
-    	
+   public void deleteFile(String fileName) throws Exception {
+
+    globalLock.lock();
+    try {
+        for (int i = 0; i < inodeTable.length; i++) {
+            FEntry entry = inodeTable[i];
+
+            if (entry != null && entry.getFilename().equals(fileName)) {
+
+                // free the block if it was used
+                if (entry.getFirstBlock() >= 0) {
+                    freeBlockList[entry.getFirstBlock()] = true;
+                }
+
+                inodeTable[i] = null;
+
+                //Djessica
+                saveMetadata();
+                //End
+
+                System.out.println("SUCCESS: File '" + fileName + "' deleted");
+                return;
+            }
+        }
+
+        System.out.println("ERROR: File '" + fileName + "' not found");
     }
+    finally {
+        globalLock.unlock();
+    }
+}
+
 
     
     //PRATHIKSHA
@@ -239,6 +316,8 @@ public class FileSystemManager {
             // Update inode entry
             entry.setFilesize((short) data.length);
             entry.setFirstBlock((short) freeBlock);
+
+            saveMetadata();
 
             System.out.println("SUCCESS: File '" + fileName + "' written (" + data.length + " bytes).");
 
