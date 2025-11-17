@@ -141,9 +141,8 @@ private final int MAXFILES = 5;
         globalLock.lock();
         try {
             if (fileName.length() > 11) {
-                System.out.println("ERROR: Filename too long.");
-                return;
-            }
+            throw new IllegalArgumentException("Filename cannot be longer than 11 characters.");
+             }
 
             for (FEntry entry : inodeTable) {
                 if (entry != null && entry.getFilename().equals(fileName)) {
